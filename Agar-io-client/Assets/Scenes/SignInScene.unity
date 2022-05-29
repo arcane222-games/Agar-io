@@ -206,8 +206,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 903992731}
-        m_TargetAssemblyTypeName: NetWebsocketController, Assembly-CSharp
+      - m_Target: {fileID: 953635483}
+        m_TargetAssemblyTypeName: UI.Signin.HUDSigninUIController, Assembly-CSharp
         m_MethodName: OnPlayBtnClick
         m_Mode: 1
         m_Arguments:
@@ -587,7 +587,6 @@ GameObject:
   - component: {fileID: 903992730}
   - component: {fileID: 903992729}
   - component: {fileID: 903992728}
-  - component: {fileID: 903992731}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -660,18 +659,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &903992731
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 903992727}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd57b04da7aa0d540aa0aebaab866973, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &953635478
 GameObject:
   m_ObjectHideFlags: 0
@@ -684,8 +671,9 @@ GameObject:
   - component: {fileID: 953635482}
   - component: {fileID: 953635481}
   - component: {fileID: 953635480}
+  - component: {fileID: 953635483}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: HUD_Signin_Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -774,6 +762,18 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &953635483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 953635478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69749d9185b071143b9c193fef25506a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1641011871
 GameObject:
   m_ObjectHideFlags: 0
