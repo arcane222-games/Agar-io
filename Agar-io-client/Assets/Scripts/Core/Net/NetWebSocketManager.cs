@@ -10,7 +10,10 @@ namespace Core.Net
     public class NetWebSocketManager : MonoSingleton<NetWebSocketManager>
     {
         #region MyRegion
-
+        
+        private const string Host = "ws://127.0.0.1";
+        private const ushort Port = 3003;
+        
         private const float MaxConnectionTimeout = 5f;
 
         #endregion
@@ -19,9 +22,13 @@ namespace Core.Net
         #region Private variables
 
         private WebSocket _webSocket;
-        private string _host = "ws://127.0.0.1";
-        private short _port = 3003;
         private bool _autoReconnection = true;
+
+        #endregion
+
+        #region Public variables
+
+        public bool IsConnected => _webSocket.IsAlive;
 
         #endregion
 
@@ -52,7 +59,7 @@ namespace Core.Net
         public override void Init()
         {
             // Create websocket instance
-            _webSocket = new WebSocket($"{_host}:{_port.ToString()}");
+            _webSocket = new WebSocket($"{Host}:{Port.ToString()}");
 
             // Register callbacks
             _webSocket.OnOpen += WebSocketOnOpenCallback;
