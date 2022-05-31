@@ -1,9 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using UnityEngine;
 using Utils;
 using WebSocketSharp;
+using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
 
 namespace Core.Net
 {
@@ -31,6 +35,15 @@ namespace Core.Net
         public bool IsConnected => _webSocket.IsAlive;
 
         #endregion
+        
+        #region Unity event methods
+
+        private void OnApplicationQuit()
+        {
+            _webSocket.CloseAsync();
+        }
+
+        #endregion
 
 
         #region Callbacks
@@ -41,6 +54,17 @@ namespace Core.Net
 
         private void WebSocketOnMessageCallback(object sender, MessageEventArgs e)
         {
+            StringBuilder sb = new StringBuilder();
+            Vector3 pos = CustomUtils.BytesToVector3(e.RawData);
+            Vector3 rot = CustomUtils.BytesToVector3(e.RawData, 12);
+            Vector3 scale = CustomUtils.BytesToVector3(e.RawData, 24);
+
+            sb.Append(pos.ToString());
+            sb.Append(' ');
+            sb.Append(rot.ToString());
+            sb.Append(' ');
+            sb.Append(scale.ToString());
+            Debug.Log(sb.ToString());
         }
 
         private void WebSocketOnErrorCallback(object sender, ErrorEventArgs e)
@@ -49,6 +73,7 @@ namespace Core.Net
 
         private void WebSocketOnCloseCallback(object sender, CloseEventArgs e)
         {
+            
         }
 
         #endregion
@@ -71,6 +96,24 @@ namespace Core.Net
         public void Connect()
         {
             StartCoroutine(WaitForConnectionCoroutine());
+        }
+
+        public void SendAsync(byte[] rawData)
+        {
+            if(IsConnected)
+                _webSocket.SendAsync(rawData, null);
+        }
+
+        public void SendAsync(string json)
+        {
+            if (IsConnected)
+                _webSocket.SendAsync(json, null);
+        }
+        
+        public void SendAsync<T>(T obj)
+        {
+            if(IsConnected)
+                _webSocket.SendAsync(JsonUtility.ToJson(obj), null);
         }
 
         #endregion

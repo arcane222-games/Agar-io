@@ -8,7 +8,7 @@ const ClientCache = require('./clientCache');
 
 // Constants
 const Base_Exec_Time = 1000;
-const Tick_Rate = 20;
+const Tick_Rate = 0.5;
 
 const clientCache = new ClientCache();
 
@@ -39,7 +39,10 @@ class WsServer {
             clientCache.add(ws);
 
             // Handle event messages
-            ws.on('message', (message) => {});
+            ws.on('message', (message) => {
+                console.log(message);
+                ws.send(message);
+            });
 
             // Print out error info
             ws.on('error', (error) => {
@@ -48,7 +51,8 @@ class WsServer {
 
             // Remove client from cache
             ws.on('close', () => {
-                clientCache.removeByWs(ws);
+                console.log(`# A client disconnects from the server ${ipAddr}`);
+                clientCache.removeByValue(ws);
             });
         });
     }
@@ -60,10 +64,11 @@ class WsServer {
         this.isRunning = true;
         const execTime = Base_Exec_Time / Tick_Rate;
         setInterval(() => {
+            console.log(Object.keys(clientCache.cache).length);
+
             for (let key in clientCache.cache) {
                 const ws = clientCache.getClient(key);
                 if (ws.readyState === ws.OPEN) {
-                    ws.send('hi client');
                 }
             }
         }, execTime);
