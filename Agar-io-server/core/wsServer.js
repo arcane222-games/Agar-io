@@ -1,16 +1,20 @@
 // External modules
 const http = require('http');
-const WebSocket = require('ws');
+const ws = require('ws');
 
 // Internal modules
 const ExpressServer = require('./expressServer');
 const ClientCache = require('./clientCache');
+const MessageQueue = require('./messageQueue');
+const Message = require('./message');
 
 // Constants
 const Base_Exec_Time = 1000;
-const Tick_Rate = 0.5;
+const Tick_Rate = 20;
 
+// Variables
 const clientCache = new ClientCache();
+const messageQueue = new MessageQueue();
 
 /**
  * @class WsServer
@@ -27,7 +31,7 @@ class WsServer {
         this.isRunning = false;
 
         // Create Websocket Server (attach to express http server)
-        this.wss = new WebSocket.Server({ server: expressHttp });
+        this.wss = new ws.Server({ server: expressHttp });
 
         // Handle websocket events
         this.wss.on('connection', (ws, req) => {
@@ -40,8 +44,8 @@ class WsServer {
 
             // Handle event messages
             ws.on('message', (message) => {
-                console.log(message);
-                ws.send(message);
+                const msg = new Message(ws, message);
+                messageQueue.add(msg);
             });
 
             // Print out error info
@@ -63,12 +67,22 @@ class WsServer {
     run() {
         this.isRunning = true;
         const execTime = Base_Exec_Time / Tick_Rate;
-        setInterval(() => {
-            console.log(Object.keys(clientCache.cache).length);
+        const keys = clientCache.getKeys();
 
-            for (let key in clientCache.cache) {
-                const ws = clientCache.getClient(key);
-                if (ws.readyState === ws.OPEN) {
+        setInterval(() => {
+            const msg = messageQueue.pop();
+
+            if (messageQueue.getSize() > 0) {
+                // process messages
+                for (const key in keys) {
+                    const opponent = clientCache.getClient(key);
+
+                    // send message to opponent
+                    if (opponent !== msg.getOwner()) {
+                        opponent.send(msg.getPayload(), (err) => {
+                            console.log(err);
+                        });
+                    }
                 }
             }
         }, execTime);

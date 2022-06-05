@@ -6,7 +6,7 @@ public class NetSyncCore : MonoBehaviour
 {
     #region Private variables
     
-    [SerializeField] private int tickRate = 1;
+    [SerializeField] private int tickRate = 20;
     [SerializeField] private bool isOwner = true;
     
     #endregion
