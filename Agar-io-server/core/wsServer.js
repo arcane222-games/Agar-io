@@ -35,12 +35,13 @@ class WsServer {
 
         // Handle websocket events
         this.wss.on('connection', (ws, req) => {
-            // print client's ip address
-            const ipAddr = req.headers['x-forwarded-for'] || req.headers.host;
-            console.log(`# A new client connects to the server ${ipAddr}`);
-
             // Add client to cache
             clientCache.add(ws);
+
+            // print client's ip address
+            const ipAddr = req.headers['x-forwarded-for'] || req.headers.host;
+            console.log(`# A new client [${ws.id}] connects to the server [${ipAddr}]`);
+
 
             // Handle event messages
             ws.on('message', (message) => {
@@ -55,8 +56,8 @@ class WsServer {
 
             // Remove client from cache
             ws.on('close', () => {
-                console.log(`# A client disconnects from the server ${ipAddr}`);
-                clientCache.removeByValue(ws);
+                const result = clientCache.removeById(ws.id);
+                console.log(`# A client [${result}] disconnects from the server [${ipAddr}]`);
             });
         });
     }
@@ -67,21 +68,20 @@ class WsServer {
     run() {
         this.isRunning = true;
         const execTime = Base_Exec_Time / Tick_Rate;
-        const keys = clientCache.getKeys();
 
         setInterval(() => {
-            const msg = messageQueue.pop();
+            const ids = clientCache.getIds();
 
             if (messageQueue.getSize() > 0) {
-                // process messages
-                for (const key in keys) {
-                    const opponent = clientCache.getClient(key);
+                const msg = messageQueue.pop();
 
-                    // send message to opponent
+                // process messages
+                for (const id of ids) {
+                    const opponent = clientCache.getClient(id);
+
+                    //send message to opponent
                     if (opponent !== msg.getOwner()) {
-                        opponent.send(msg.getPayload(), (err) => {
-                            console.log(err);
-                        });
+                        opponent.send(msg.getPayload());
                     }
                 }
             }

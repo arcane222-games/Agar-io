@@ -44,7 +44,10 @@ public class NetSyncTransform : MonoBehaviour
     private void Start()
     {
         _netSyncCore = GetComponent<NetSyncCore>();
-        StartCoroutine(SendTransform());
+        if (_netSyncCore.IsOwner)
+            StartCoroutine(SendTransform());
+        else
+            NetWebSocketManager.Instance.AddOpponent(gameObject);
     }
 
     #endregion
@@ -77,6 +80,7 @@ public class NetSyncTransform : MonoBehaviour
     private IEnumerator SendTransform()
     {
         var gap = 1 / _netSyncCore.TickRate;
+        var wfs = new WaitForSeconds(gap);
 
         while (true)
         {
@@ -84,7 +88,7 @@ public class NetSyncTransform : MonoBehaviour
             if (NetWebSocketManager.Instance.IsConnected)
                 NetWebSocketManager.Instance.SendAsync(payload);
 
-            yield return new WaitForSeconds(gap);
+            yield return wfs;
         }
     }
 

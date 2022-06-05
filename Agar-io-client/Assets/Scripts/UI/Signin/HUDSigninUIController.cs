@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Core.Net;
@@ -9,7 +10,20 @@ namespace UI.Signin
     public class HUDSigninUIController : MonoBehaviour
     {
         private const string DestSceneName = "GameScene";
-        
+
+        #region Unity event methods
+
+        private void Awake()
+        {
+            Application.runInBackground = true;
+            Application.targetFrameRate = 60;
+        }
+
+        #endregion
+
+
+        #region Callbacks
+
         public void OnPlayBtnClick()
         {
             NetWebSocketManager.Instance.Init();
@@ -18,9 +32,10 @@ namespace UI.Signin
             StartCoroutine(WaitForConnection());
         }
 
+        #endregion
 
 
-        #region
+        #region Coroutines
 
         private IEnumerator WaitForConnection()
         {
@@ -28,10 +43,10 @@ namespace UI.Signin
             {
                 yield return null;
             }
-            
+
             SceneManager.LoadSceneAsync(DestSceneName);
         }
-        
+
         #endregion
     }
 }

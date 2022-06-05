@@ -2,7 +2,7 @@
 const ws = require('ws');
 
 // Private variables
-let _size = 0;
+let _idx = 0;
 let _cache = {};
 
 /**
@@ -20,7 +20,7 @@ class ClientCache {
      * @returns {number}
      */
     getSize() {
-        return _size;
+        return Object.keys(_cache).length;
     }
 
     /**
@@ -33,44 +33,50 @@ class ClientCache {
     }
 
     /**
-     * Get keys of cache
+     * Get id of clients (key values)
      * @returns {object}
      */
-    getKeys() {
+    getIds() {
         return Object.keys(_cache);
     }
 
     /**
      * Add client to cache
+     * (add 'id' property to websocket object)
      * @param {ws.WebSocket} ws
      */
     add(ws) {
-        _cache[_size++] = ws;
+        ws.id = _idx;
+        _cache[_idx++] = ws;
     }
 
     /**
      * Remove client using id key
      * @param {number} id
      */
-    removeByKey(id) {
-        if (!Number.isInteger(id)) return;
-        if (id < 0) return;
+    removeById(id) {
+        if (!Number.isInteger(id)) return -1;
+        if (id < 0) return -1;
+        if (_cache[id] == undefined) return -1;
 
-        if (_cache[id] != undefined) {
-            delete _cache[id];
-        }
+        delete _cache[id];
+        return id;
     }
 
     /**
      * Remove client using ws value
      * @param {ws.WebSocket} ws
+     * @returns {number} Id (key value) of websocket
      */
-    removeByValue(ws) {
+    removeByWS(ws) {
         const keys = Object.keys(_cache);
-        const wsKey = keys.find((key) => _cache[key] === ws);
+        const id = keys.find((key) => _cache[key] === ws);
 
-        if (keys.length > 0 && _cache[wsKey] != undefined) {
-            delete _cache[wsKey];
+        if (keys.length > 0 && _cache[id] != undefined) {
+            delete _cache[id];
+            return id;
+        } else {
+            return -1;
         }
     }
 }

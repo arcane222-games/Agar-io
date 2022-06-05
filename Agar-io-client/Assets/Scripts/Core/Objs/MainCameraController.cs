@@ -10,9 +10,8 @@ namespace Core.Objs
 
         [SerializeField] private float movementSpeed;
 
-        private float _size;
-
         private Transform _playerTransform;
+        private float _size;
     
         #endregion
 

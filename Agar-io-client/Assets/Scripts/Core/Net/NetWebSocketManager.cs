@@ -13,11 +13,11 @@ namespace Core.Net
 {
     public class NetWebSocketManager : MonoSingleton<NetWebSocketManager>
     {
-        #region MyRegion
-        
+        #region Constants
+
         private const string Host = "ws://127.0.0.1";
         private const ushort Port = 3003;
-        
+
         private const float MaxConnectionTimeout = 5f;
 
         #endregion
@@ -26,6 +26,7 @@ namespace Core.Net
         #region Private variables
 
         private WebSocket _webSocket;
+        private GameObject _opponent;
         private bool _autoReconnection = true;
 
         #endregion
@@ -35,9 +36,9 @@ namespace Core.Net
         public bool IsConnected => _webSocket.IsAlive;
 
         #endregion
-        
-        #region Unity event methods
 
+        #region Unity event methods
+        
         private void OnApplicationQuit()
         {
             _webSocket.CloseAsync();
@@ -54,17 +55,18 @@ namespace Core.Net
 
         private void WebSocketOnMessageCallback(object sender, MessageEventArgs e)
         {
-            StringBuilder sb = new StringBuilder();
-            Vector3 pos = CustomUtils.BytesToVector3(e.RawData);
-            Vector3 rot = CustomUtils.BytesToVector3(e.RawData, 12);
-            Vector3 scale = CustomUtils.BytesToVector3(e.RawData, 24);
-
-            sb.Append(pos.ToString());
-            sb.Append(' ');
-            sb.Append(rot.ToString());
-            sb.Append(' ');
-            sb.Append(scale.ToString());
-            Debug.Log(sb.ToString());
+            if (e.Data == null)
+            {
+                Vector3 pos = CustomUtils.BytesToVector3(e.RawData);
+                Vector3 rot = CustomUtils.BytesToVector3(e.RawData, 12);
+                Vector3 scale = CustomUtils.BytesToVector3(e.RawData, 24);
+                
+                _opponent.transform.position = pos;
+                _opponent.transform.eulerAngles = rot;
+                _opponent.transform.localScale = scale;
+                
+                Debug.Log(_opponent.name);
+            }
         }
 
         private void WebSocketOnErrorCallback(object sender, ErrorEventArgs e)
@@ -73,7 +75,6 @@ namespace Core.Net
 
         private void WebSocketOnCloseCallback(object sender, CloseEventArgs e)
         {
-            
         }
 
         #endregion
@@ -100,7 +101,7 @@ namespace Core.Net
 
         public void SendAsync(byte[] rawData)
         {
-            if(IsConnected)
+            if (IsConnected)
                 _webSocket.SendAsync(rawData, null);
         }
 
@@ -109,11 +110,16 @@ namespace Core.Net
             if (IsConnected)
                 _webSocket.SendAsync(json, null);
         }
-        
+
         public void SendAsync<T>(T obj)
         {
-            if(IsConnected)
+            if (IsConnected)
                 _webSocket.SendAsync(JsonUtility.ToJson(obj), null);
+        }
+
+        public void AddOpponent(GameObject obj)
+        {
+            _opponent = obj;
         }
 
         #endregion
