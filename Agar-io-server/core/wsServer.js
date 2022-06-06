@@ -10,7 +10,7 @@ const Message = require('./message');
 
 // Constants
 const Base_Exec_Time = 1000;
-const Tick_Rate = 20;
+const Tick_Rate = 30;
 
 // Variables
 const clientCache = new ClientCache();
@@ -42,6 +42,9 @@ class WsServer {
             const ipAddr = req.headers['x-forwarded-for'] || req.headers.host;
             console.log(`# A new client [${ws.id}] connects to the server [${ipAddr}]`);
 
+            ws.on('ping', (message) => {
+                ws.send();
+            });
 
             // Handle event messages
             ws.on('message', (message) => {

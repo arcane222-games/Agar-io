@@ -1,12 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
 using Utils;
 using WebSocketSharp;
+using Debug = UnityEngine.Debug;
 using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
 
 namespace Core.Net
@@ -27,6 +29,7 @@ namespace Core.Net
 
         private WebSocket _webSocket;
         private GameObject _opponent;
+        private Stopwatch _stopWatch;
         private bool _autoReconnection = true;
 
         #endregion
@@ -34,11 +37,12 @@ namespace Core.Net
         #region Public variables
 
         public bool IsConnected => _webSocket.IsAlive;
+        public long Latency { get; private set; }
 
         #endregion
 
         #region Unity event methods
-        
+
         private void OnApplicationQuit()
         {
             _webSocket.CloseAsync();
@@ -60,11 +64,11 @@ namespace Core.Net
                 Vector3 pos = CustomUtils.BytesToVector3(e.RawData);
                 Vector3 rot = CustomUtils.BytesToVector3(e.RawData, 12);
                 Vector3 scale = CustomUtils.BytesToVector3(e.RawData, 24);
-                
-                _opponent.transform.position = pos;
+
+                _opponent.transform.position = Vector3.Lerp(_opponent.transform.position, pos, 1f);
                 _opponent.transform.eulerAngles = rot;
                 _opponent.transform.localScale = scale;
-                
+
                 Debug.Log(_opponent.name);
             }
         }
@@ -86,6 +90,7 @@ namespace Core.Net
         {
             // Create websocket instance
             _webSocket = new WebSocket($"{Host}:{Port.ToString()}");
+            _stopWatch = new Stopwatch();
 
             // Register callbacks
             _webSocket.OnOpen += WebSocketOnOpenCallback;
@@ -97,6 +102,7 @@ namespace Core.Net
         public void Connect()
         {
             StartCoroutine(WaitForConnectionCoroutine());
+            StartCoroutine(PingInterval());
         }
 
         public void SendAsync(byte[] rawData)
@@ -127,7 +133,7 @@ namespace Core.Net
 
         #region Coroutines
 
-        IEnumerator WaitForConnectionCoroutine()
+        private IEnumerator WaitForConnectionCoroutine()
         {
             float elapsedTime = 0;
             _webSocket.ConnectAsync();
@@ -154,6 +160,25 @@ namespace Core.Net
                         yield break;
                     }
                 }
+            }
+        }
+
+        private IEnumerator PingInterval()
+        {
+            while (true)
+            {
+                if (IsConnected)
+                {
+                    _stopWatch.Reset();
+                    _stopWatch.Start();
+                    if (_webSocket.Ping())
+                    {
+                        _stopWatch.Stop();
+                        Latency = _stopWatch.ElapsedMilliseconds;
+                    }
+                }
+
+                yield return null;
             }
         }
 
