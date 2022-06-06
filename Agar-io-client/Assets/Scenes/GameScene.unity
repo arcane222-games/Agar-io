@@ -407,7 +407,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6158439476861170116, guid: 026af8035906df746921ecb469d915bc, type: 3}
       propertyPath: tickRate
-      value: 30
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 6158439476861170141, guid: 026af8035906df746921ecb469d915bc, type: 3}
       propertyPath: m_Name
@@ -679,6 +679,10 @@ PrefabInstance:
     - target: {fileID: 212384066045422806, guid: 31d8afa891e1a914899469dc7186df70, type: 3}
       propertyPath: m_Name
       value: Opponent
+      objectReference: {fileID: 0}
+    - target: {fileID: 212384066045422806, guid: 31d8afa891e1a914899469dc7186df70, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2922208010601234081, guid: 31d8afa891e1a914899469dc7186df70, type: 3}
       propertyPath: m_RootOrder

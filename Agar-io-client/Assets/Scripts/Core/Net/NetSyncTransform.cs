@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
 using Core.Net;
 using UnityEngine;
 using Utils;
@@ -25,12 +27,13 @@ public class NetSyncTransform : MonoBehaviour
     }
 
     #endregion
-    
+
 
     #region Private variables
 
-    [Header("Sync options")] 
-    [SerializeField] private SyncOptions syncPosition = new SyncOptions(true, true, true);
+    [Header("Sync options")] [SerializeField]
+    private SyncOptions syncPosition = new SyncOptions(true, true, true);
+
     [SerializeField] private SyncOptions syncRotation = new SyncOptions(true, true, true);
     [SerializeField] private SyncOptions syncScale = new SyncOptions(true, true, true);
 
@@ -44,8 +47,22 @@ public class NetSyncTransform : MonoBehaviour
     private void Start()
     {
         _netSyncCore = GetComponent<NetSyncCore>();
+        var execTime = (int)Math.Round(1000 / _netSyncCore.TickRate);
+
+        Task task = new Task(() =>
+        {
+            while (true)
+            {
+                byte[] payload = TransformToBytes();
+                if (NetWebSocketManager.Instance.IsConnected)
+                    NetWebSocketManager.Instance.SendAsync(payload);
+
+                Thread.Sleep(execTime);
+            }
+        });
+
         if (_netSyncCore.IsOwner)
-            StartCoroutine(SendTransform());
+            task.Start();
         else
             NetWebSocketManager.Instance.AddOpponent(gameObject);
     }
@@ -60,7 +77,7 @@ public class NetSyncTransform : MonoBehaviour
         var pos = CustomUtils.Vector3ToBytes(transform.position);
         var rot = CustomUtils.Vector3ToBytes(transform.eulerAngles);
         var scale = CustomUtils.Vector3ToBytes(transform.localScale);
-        
+
         var bytes = new byte[pos.Length + rot.Length + scale.Length];
         for (int i = 0; i < pos.Length; i++)
         {
@@ -70,26 +87,6 @@ public class NetSyncTransform : MonoBehaviour
         }
 
         return bytes;
-    }
-
-    #endregion
-
-
-    #region Coroutines
-
-    private IEnumerator SendTransform()
-    {
-        var gap = 1 / _netSyncCore.TickRate;
-        var wfs = new WaitForSeconds(gap);
-
-        while (true)
-        {
-            byte[] payload = TransformToBytes();
-            if (NetWebSocketManager.Instance.IsConnected)
-                NetWebSocketManager.Instance.SendAsync(payload);
-
-            yield return wfs;
-        }
     }
 
     #endregion

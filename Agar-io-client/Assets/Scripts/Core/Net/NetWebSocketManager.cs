@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using Utils;
 using WebSocketSharp;
@@ -17,8 +19,8 @@ namespace Core.Net
     {
         #region Constants
 
-        private const string Host = "ws://127.0.0.1";
-        private const ushort Port = 3003;
+        private const string Host = "ws://14.33.110.230";
+        private const ushort Port = 8083;
 
         private const float MaxConnectionTimeout = 5f;
 
@@ -102,7 +104,45 @@ namespace Core.Net
         public void Connect()
         {
             StartCoroutine(WaitForConnectionCoroutine());
-            StartCoroutine(PingInterval());
+            
+            Task task = new Task(() =>
+            {
+                while (true)
+                {
+                    if (IsConnected)
+                    {
+                        _stopWatch.Reset();
+                        _stopWatch.Start();
+                        if (_webSocket.Ping())
+                        {
+                            _stopWatch.Stop();
+                            Latency = _stopWatch.ElapsedMilliseconds;
+                        }
+                    }
+
+                    Thread.Sleep(100);
+                }
+            });
+
+            task.Start();
+        }
+
+        public void Send(byte[] rawData)
+        {
+            if(IsConnected)
+                _webSocket.Send(rawData);
+        }
+
+        public void Send(string json)
+        {
+            if(IsConnected)
+                _webSocket.Send(json);
+        }
+
+        public void Send<T>(T obj)
+        {
+            if(IsConnected)
+                _webSocket.Send(JsonUtility.ToJson(obj));
         }
 
         public void SendAsync(byte[] rawData)
@@ -160,25 +200,6 @@ namespace Core.Net
                         yield break;
                     }
                 }
-            }
-        }
-
-        private IEnumerator PingInterval()
-        {
-            while (true)
-            {
-                if (IsConnected)
-                {
-                    _stopWatch.Reset();
-                    _stopWatch.Start();
-                    if (_webSocket.Ping())
-                    {
-                        _stopWatch.Stop();
-                        Latency = _stopWatch.ElapsedMilliseconds;
-                    }
-                }
-
-                yield return null;
             }
         }
 
