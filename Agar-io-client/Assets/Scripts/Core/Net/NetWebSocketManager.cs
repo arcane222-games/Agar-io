@@ -20,7 +20,7 @@ namespace Core.Net
         #region Constants
 
         private const string Host = "ws://14.33.110.230";
-        private const ushort Port = 8083;
+        private const ushort Port = 8080;
 
         private const float MaxConnectionTimeout = 5f;
 
@@ -33,6 +33,7 @@ namespace Core.Net
         private GameObject _opponent;
         private Stopwatch _stopWatch;
         private bool _autoReconnection = true;
+        private bool _onPongReceived = true;
 
         #endregion
 
@@ -57,10 +58,19 @@ namespace Core.Net
 
         private void WebSocketOnOpenCallback(object sender, EventArgs e)
         {
+            Debug.Log(e);
         }
 
         private void WebSocketOnMessageCallback(object sender, MessageEventArgs e)
         {
+            if (e.RawData.Length == 0)
+            {
+                Latency = _stopWatch.ElapsedMilliseconds;
+                _stopWatch.Stop();
+                _onPongReceived = true;
+                Debug.Log("pong");
+            }
+            
             if (e.Data == null)
             {
                 Vector3 pos = CustomUtils.BytesToVector3(e.RawData);
@@ -77,10 +87,12 @@ namespace Core.Net
 
         private void WebSocketOnErrorCallback(object sender, ErrorEventArgs e)
         {
+            Debug.Log($"{e.Exception} / {e.Message}");
         }
 
         private void WebSocketOnCloseCallback(object sender, CloseEventArgs e)
         {
+            Debug.Log($"{e.Code.ToString()} / {e.Reason}");
         }
 
         #endregion
@@ -105,18 +117,19 @@ namespace Core.Net
         {
             StartCoroutine(WaitForConnectionCoroutine());
             
-            Task task = new Task(() =>
+            var task = new Task(() =>
             {
                 while (true)
                 {
                     if (IsConnected)
                     {
-                        _stopWatch.Reset();
-                        _stopWatch.Start();
-                        if (_webSocket.Ping())
+                        if (_onPongReceived)
                         {
-                            _stopWatch.Stop();
-                            Latency = _stopWatch.ElapsedMilliseconds;
+                            _stopWatch.Reset();
+                            _stopWatch.Start();
+                            
+                            _webSocket.Ping();
+                            _onPongReceived = false;
                         }
                     }
 

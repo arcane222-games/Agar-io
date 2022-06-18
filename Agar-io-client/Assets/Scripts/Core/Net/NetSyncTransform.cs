@@ -46,25 +46,25 @@ public class NetSyncTransform : MonoBehaviour
 
     private void Start()
     {
-        _netSyncCore = GetComponent<NetSyncCore>();
-        var execTime = (int)Math.Round(1000 / _netSyncCore.TickRate);
-
-        Task task = new Task(() =>
-        {
-            while (true)
-            {
-                byte[] payload = TransformToBytes();
-                if (NetWebSocketManager.Instance.IsConnected)
-                    NetWebSocketManager.Instance.SendAsync(payload);
-
-                Thread.Sleep(execTime);
-            }
-        });
-
-        if (_netSyncCore.IsOwner)
-            task.Start();
-        else
-            NetWebSocketManager.Instance.AddOpponent(gameObject);
+        // _netSyncCore = GetComponent<NetSyncCore>();
+        // var execTime = (int)Math.Round(1000 / _netSyncCore.TickRate);
+        //
+        // Task task = new Task(() =>
+        // {
+        //     while (true)
+        //     {
+        //         byte[] payload = TransformToBytes();
+        //         if (NetWebSocketManager.Instance.IsConnected)
+        //             NetWebSocketManager.Instance.SendAsync(payload);
+        //
+        //         Thread.Sleep(execTime);
+        //     }
+        // });
+        //
+        // if (_netSyncCore.IsOwner)
+        //     task.Start();
+        // else
+        //     NetWebSocketManager.Instance.AddOpponent(gameObject);
     }
 
     #endregion
